@@ -146,15 +146,7 @@ xgb_model = pipeline.named_steps["model"]
 X_test_proc = pipeline.named_steps["preprocessor"].transform(X_test)
 feature_names = CONTINUOUS_FEATURES + CATEGORICAL_FEATURES
 
-import json
-my_booster = xgb_model.get_booster()
-config = json.loads(my_booster.save_config())
-base_score = config["learner"]["learner_model_param"]["base_score"]
-if isinstance(base_score, str) and base_score.startswith('[') and base_score.endswith(']'):
-    config["learner"]["learner_model_param"]["base_score"] = base_score[1:-1]
-    my_booster.load_config(json.dumps(config))
-
-explainer = shap.TreeExplainer(my_booster)
+explainer = shap.TreeExplainer(xgb_model)
 shap_values = explainer.shap_values(X_test_proc)
 
 # Global beeswarm summary

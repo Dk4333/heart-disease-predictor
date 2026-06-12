@@ -1,4 +1,4 @@
-xgboost>=2.0.0
+xgboost>=2.0.0,<2.1.0
 shap>=0.44.0
 optuna>=3.5.0
 scikit-learn>=1.4.0
