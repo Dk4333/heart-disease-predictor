@@ -38,20 +38,29 @@ st.divider()
 
 @st.cache_resource
 def load_artefacts():
-    pipeline = joblib.load("models/heart_disease_pipeline.pkl")
-    explainer = joblib.load("models/shap_explainer.pkl")
-    with open("models/threshold.txt") as f:
-        threshold = float(f.read().strip())
-    return pipeline, explainer, threshold
+    import subprocess
+    try:
+        pipeline = joblib.load("models/heart_disease_pipeline.pkl")
+        explainer = joblib.load("models/shap_explainer.pkl")
+        with open("models/threshold.txt") as f:
+            threshold = float(f.read().strip())
+        return pipeline, explainer, threshold
+    except Exception as e:
+        st.warning("⚠️ Model compatibility issue detected. Retraining the model in the cloud environment... (This will take about 20 seconds)")
+        subprocess.run([sys.executable, "src/train.py"], check=True)
+        # Try loading again after retraining
+        pipeline = joblib.load("models/heart_disease_pipeline.pkl")
+        explainer = joblib.load("models/shap_explainer.pkl")
+        with open("models/threshold.txt") as f:
+            threshold = float(f.read().strip())
+        st.success("Retraining complete!")
+        return pipeline, explainer, threshold
 
 
 try:
     pipeline, explainer, threshold = load_artefacts()
-except FileNotFoundError:
-    st.error(
-        "Model not found. Run `python src/train.py` first to generate "
-        "the model artefacts in the `models/` directory."
-    )
+except Exception as e:
+    st.error(f"Critical error loading or training the model: {e}")
     st.stop()
 
 
